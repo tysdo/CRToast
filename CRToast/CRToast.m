@@ -155,7 +155,7 @@ typedef NS_ENUM(NSInteger, CRToastState) {
 - (void)initiateAnimator:(UIView *)view;
 @end
 
-@interface CRToastNotificationView : UIView
+@interface CRToastView : UIView
 @property (nonatomic, strong) CRToast *toast;
 @end
 
@@ -478,7 +478,7 @@ NSArray * CRToastGenericRecognizersMake(id target, CRToastInteractionResponder *
 
 - (UIView*)notificationView {
     CGSize size = CRNotificationViewSize(self.notificationType);
-    CRToastNotificationView *notificationView = [[CRToastNotificationView alloc] initWithFrame:CGRectMake(0, 0, size.width, size.height)];
+    CRToastView *notificationView = [[CRToastView alloc] initWithFrame:CGRectMake(0, 0, size.width, size.height)];
     notificationView.toast = self;
     return notificationView;
 }
@@ -875,9 +875,9 @@ static CGFloat kCRCollisionTweak = 0.5;
 
 @end
 
-#pragma mark - CRToastNotificationView
+#pragma mark - CRToastView
 
-@interface CRToastNotificationView ()
+@interface CRToastView ()
 @property (nonatomic, strong) UIImageView *imageView;
 @property (nonatomic, strong) UILabel *label;
 @property (nonatomic, strong) UILabel *subtitleLabel;
@@ -893,7 +893,7 @@ static CGFloat const kCRStatusBarViewNoImageRightContentInset = 10;
 
 static CGFloat const CRStatusBarViewUnderStatusBarYOffsetAdjustment = -5;
 
-@implementation CRToastNotificationView
+@implementation CRToastView
 
 - (instancetype)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
@@ -1012,13 +1012,13 @@ static CGFloat const CRStatusBarViewUnderStatusBarYOffsetAdjustment = -5;
 
 @end
 
-#pragma mark - CRToastView
+#pragma mark - CRToastContainerView
 
-@interface CRToastView : UIView
+@interface CRToastContainerView : UIView
 
 @end
 
-@implementation CRToastView
+@implementation CRToastContainerView
 
 -(BOOL)pointInside:(CGPoint)point withEvent:(UIEvent*)event {
     for (UIView*subview in self.subviews) {
@@ -1135,7 +1135,7 @@ UIStatusBarStyle statusBarStyle;
 
 - (void)loadView {
     UIView *containerView = [[UIView alloc] init];
-    self.view = [[CRToastView alloc] init];
+    self.view = [[CRToastContainerView alloc] init];
     
     _notificationContainerView = containerView;
     [self.view addSubview:containerView];
