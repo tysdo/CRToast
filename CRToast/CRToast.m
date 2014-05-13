@@ -930,6 +930,7 @@ static CGFloat const CRStatusBarViewUnderStatusBarYOffsetAdjustment = -5;
     self = [super initWithFrame:frame];
     if (self) {
         self.userInteractionEnabled = YES;
+        self.clipsToBounds = YES;
         
         UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectZero];
         imageView.userInteractionEnabled = NO;
@@ -1023,10 +1024,54 @@ static CGFloat const CRStatusBarViewUnderStatusBarYOffsetAdjustment = -5;
 
 @end
 
+#pragma mark - CRWindow
+
+@interface CRWindow : UIWindow
+
+@end
+
+@implementation CRWindow
+
+- (BOOL)pointInside:(CGPoint)point withEvent:(UIEvent*)event {
+    for (UIView *subview in self.subviews) {
+        if ([subview hitTest:[self convertPoint:point toView:subview] withEvent:event] != nil) {
+            return YES;
+        }
+    }
+    return NO;
+}
+
+@end
+
+#pragma mark - CRToastWrapperView
+
+@interface CRToastWrapperView : UIView
+
+@end
+
+@implementation CRToastWrapperView
+
+-(BOOL)pointInside:(CGPoint)point withEvent:(UIEvent*)event {
+    for (UIView*subview in self.subviews) {
+        if ([subview hitTest:[self convertPoint:point toView:subview] withEvent:event] != nil) {
+            return YES;
+        }
+    }
+    return NO;
+}
+
+@end
+
 #pragma mark - CRToastViewController
 
 @interface CRToastViewController : UIViewController
+
+@property (nonatomic, weak) UIView *notificationView;
+@property (nonatomic, weak) UIView *notificationContainerView;
+@property (nonatomic, weak) CRToast *notification;
+
 - (void)statusBarStyle:(UIStatusBarStyle)newStatusBarStyle;
+
 @end
 
 @implementation CRToastViewController
@@ -1044,6 +1089,47 @@ UIStatusBarStyle statusBarStyle;
 - (void)statusBarStyle:(UIStatusBarStyle)newStatusBarStyle {
     statusBarStyle = newStatusBarStyle;
     [self setNeedsStatusBarAppearanceUpdate];
+}
+
+- (void)xwillAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration {
+    [super willAnimateRotationToInterfaceOrientation:toInterfaceOrientation duration:duration];
+    CGSize notificationSize = CRNotificationViewSize(self.notification.notificationType);
+    //self.view.frame = CGRectMake(0, 0, notificationSize.width, notificationSize.height);
+    self.notificationView.frame = CGRectMake(0, 0, notificationSize.width, notificationSize.height);
+}
+
+- (void)loadView {
+    UIView *containerView = [[UIView alloc] init];
+    self.view = [[CRToastWrapperView alloc] init];
+    
+    _notificationContainerView = containerView;
+    [self.view addSubview:containerView];
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    
+    self.view.clipsToBounds = YES;
+    self.view.userInteractionEnabled = YES;
+    self.view.backgroundColor = [UIColor clearColor];
+    
+    self.notificationContainerView.clipsToBounds = YES;
+    self.notificationContainerView.userInteractionEnabled = YES;
+    self.notificationContainerView.backgroundColor = [UIColor clearColor];
+}
+
+- (void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration {
+    [super willAnimateRotationToInterfaceOrientation:toInterfaceOrientation duration:duration];
+    
+    CGSize notificationSize = CRNotificationViewSize(self.notification.notificationType);
+    self.notificationContainerView.frame = CGRectMake(0, 0, notificationSize.width, notificationSize.height);
+    self.notificationView.frame = CGRectMake(0, 0, notificationSize.width, notificationSize.height);
+    if (self.notification.animator) {
+        [self.notification.animator removeAllBehaviors];
+        //if (self.gravityAnimationCompletionBlock) {
+        //    self.gravityAnimationCompletionBlock(YES);
+        //}
+    }
 }
 
 @end
@@ -1227,6 +1313,7 @@ CRToastAnimationStepBlock CRToastOutwardAnimationsSetupBlock(CRToastManager *wea
 
     CRToastViewController *rootViewController = (CRToastViewController*)_notificationWindow.rootViewController;
     [rootViewController statusBarStyle:notification.statusBarStyle];
+    rootViewController.notification = notification;
 
     _notificationWindow.frame = containerFrame;
     _notificationWindow.rootViewController.view.frame = CGRectMake(0, 0, CGRectGetWidth(containerFrame), CGRectGetHeight(containerFrame));
@@ -1234,13 +1321,14 @@ CRToastAnimationStepBlock CRToastOutwardAnimationsSetupBlock(CRToastManager *wea
     
     UIView *statusBarView = notification.statusBarView;
     statusBarView.frame = _notificationWindow.rootViewController.view.bounds;
-    [_notificationWindow.rootViewController.view addSubview:statusBarView];
+    [rootViewController.view addSubview:statusBarView];
     self.statusBarView = statusBarView;
     statusBarView.hidden = notification.presentationType == CRToastPresentationTypeCover;
     
     UIView *notificationView = notification.notificationView;
     notificationView.frame = notification.notificationViewAnimationFrame1;
-    [_notificationWindow.rootViewController.view addSubview:notificationView];
+    [rootViewController.view addSubview:notificationView];
+    rootViewController.notificationView = notificationView;
     self.notificationView = notificationView;
     self.statusBarView = statusBarView;
     
