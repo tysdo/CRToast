@@ -420,7 +420,12 @@ NSArray * CRToastGenericRecognizersMake(id target, CRToastInteractionResponder *
         kCRSubtitleFontDefault = [UIFont systemFontOfSize:12];
         kCRSubtitleTextColorDefault = [UIColor whiteColor];
         kCRSubtitleTextShadowOffsetDefault = CGSizeZero;
-        kCRBackgroundColorDefault = [[UIApplication sharedApplication] delegate].window.tintColor ?: [UIColor redColor];
+        if ([UIWindow instancesRespondToSelector:@selector(tintColor)]) {
+            kCRBackgroundColorDefault = [[UIApplication sharedApplication] delegate].window.tintColor ?: [UIColor redColor];
+        }
+        else {
+            kCRBackgroundColorDefault = [UIColor redColor];
+        }
         kCRInteractionResponders = @[];
 
         kCRToastKeyClassMap = @{kCRToastNotificationTypeKey                 : NSStringFromClass([@(kCRNotificationTypeDefault) class]),
