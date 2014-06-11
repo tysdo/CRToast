@@ -411,9 +411,9 @@ NSArray * CRToastGenericRecognizersMake(id target, CRToastInteractionResponder *
 
 @implementation CRToast
 
-+ (void)initialize {
-    if (self == [CRToast class]) {
-
++ (void)setupDefaultOptions {
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
         kCRFontDefault = [UIFont systemFontOfSize:12];
         kCRTextColorDefault = [UIColor whiteColor];
         kCRTextShadowOffsetDefault = CGSizeZero;
@@ -456,7 +456,7 @@ NSArray * CRToastGenericRecognizersMake(id target, CRToastInteractionResponder *
                                 kCRToastImageKey                            : NSStringFromClass([UIImage class]),
                                 kCRToastInteractionRespondersKey            : NSStringFromClass([NSArray class]),
                                 kCRToastAutorotateKey                       : NSStringFromClass([@(kCRAutoRotateDefault) class])};
-    }
+    });
 }
 
 + (instancetype)notificationWithOptions:(NSDictionary*)options completionBlock:(void (^)(void))completion {
@@ -469,6 +469,10 @@ NSArray * CRToastGenericRecognizersMake(id target, CRToastInteractionResponder *
 }
 
 + (void)setDefaultOptions:(NSDictionary*)defaultOptions {
+    if (!kCRToastKeyClassMap) {
+        [self setupDefaultOptions];
+    }
+
     //TODO Validate Types of Default Options
     if (defaultOptions[kCRToastNotificationTypeKey])                kCRNotificationTypeDefault              = [defaultOptions[kCRToastNotificationTypeKey] integerValue];
     if (defaultOptions[kCRToastNotificationPreferredHeightKey])     kCRNotificationPreferredHeightDefault   = [defaultOptions[kCRToastNotificationPreferredHeightKey] floatValue];
@@ -899,6 +903,10 @@ static CGFloat kCRCollisionTweak = 0.5;
 }
 
 - (void)setOptions:(NSDictionary *)options {
+    if (!kCRToastKeyClassMap) {
+        [[self class] setupDefaultOptions];
+    }
+
     NSMutableDictionary *cleanOptions = [options mutableCopy];
     [options enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
         //Check keys validity followed by checking objects type validity
@@ -1033,7 +1041,6 @@ static CGFloat const CRStatusBarViewUnderStatusBarYOffsetAdjustment = -5;
                                       offset+statusBarYOffset,
                                       CGRectGetWidth(contentFrame)-x-kCRStatusBarViewNoImageRightContentInset,
                                       height);
-
 
         self.subtitleLabel.frame = CGRectMake(x,
                                               height+offset+statusBarYOffset,
