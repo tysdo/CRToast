@@ -1025,18 +1025,18 @@ static CGFloat const CRStatusBarViewUnderStatusBarYOffsetAdjustment = -5;
                                       CGRectGetHeight(contentFrame));
     } else {
         CGFloat height = [self.toast.text respondsToSelector:@selector(boundingRectWithSize:options:attributes:context:)]
-		? MIN([self.toast.text boundingRectWithSize:CGSizeMake(width, MAXFLOAT)
-											options:NSStringDrawingUsesLineFragmentOrigin
-										 attributes:@{NSFontAttributeName : self.toast.font}
-											context:nil].size.height,
-			  CGRectGetHeight(contentFrame))
-		:  CGRectGetHeight(contentFrame);
+        ? MIN([self.toast.text boundingRectWithSize:CGSizeMake(width, MAXFLOAT)
+                                            options:NSStringDrawingUsesLineFragmentOrigin
+                                         attributes:@{NSFontAttributeName : self.toast.font}
+                                            context:nil].size.height,
+              CGRectGetHeight(contentFrame))
+        :  CGRectGetHeight(contentFrame);
         CGFloat subtitleHeight = [self.toast.subtitleText respondsToSelector:@selector(boundingRectWithSize:options:attributes:context:)]
-		? [self.toast.subtitleText boundingRectWithSize:CGSizeMake(width, MAXFLOAT)
-												options:NSStringDrawingUsesLineFragmentOrigin
-											 attributes:@{NSFontAttributeName : self.toast.subtitleFont }
-												context:nil].size.height
-		: [self.toast.subtitleText sizeWithFont:self.toast.subtitleFont forWidth:width lineBreakMode:NSLineBreakByWordWrapping].height;
+        ? [self.toast.subtitleText boundingRectWithSize:CGSizeMake(width, MAXFLOAT)
+                                                options:NSStringDrawingUsesLineFragmentOrigin
+                                             attributes:@{NSFontAttributeName : self.toast.subtitleFont }
+                                                context:nil].size.height
+        : [self.toast.subtitleText sizeWithFont:self.toast.subtitleFont forWidth:width lineBreakMode:NSLineBreakByWordWrapping].height;
         if ((CGRectGetHeight(contentFrame) - (height + subtitleHeight)) < 5) {
             subtitleHeight = (CGRectGetHeight(contentFrame) - (height))-10;
         }
